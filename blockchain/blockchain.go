@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"fmt"
+
 	"github.com/dgraph-io/badger"
 )
 
@@ -24,7 +25,7 @@ func (chain *BlockChain) AddBlock(data string) {
 	err := chain.Database.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("lh"))
 		Handle(err)
-		lastHash, err = item.value()
+		lastHash, err = item.Value()
 		return err
 	})
 	Handle(err)
@@ -58,7 +59,7 @@ func InitBlockChain() *BlockChain {
 		} else {
 			item, err := txn.Get([]byte("lh"))
 			Handle(err)
-			lastHash, err = item.value()
+			lastHash, err = item.Value()
 			return err
 		}
 	})
