@@ -16,7 +16,7 @@ type CommandLine struct{}
 func (cli *CommandLine) printUsage() {
 	fmt.Println("Usage:")
 	fmt.Println(" getbalance -address ADDRESS - get the balance for user")
-	fmt.Println(" CreateBlockchain -adress ADDRESS ceates a blockchain")
+	fmt.Println(" createBlockchain -adress ADDRESS ceates a blockchain")
 	fmt.Println(" printchain - Prints the blocks in the chain")
 	fmt.Println(" send -from FROM -to TO -amount AMOUNT -senD amount to specificuser")
 	fmt.Println(" createwallet -creates a new Wallet")
@@ -41,6 +41,9 @@ func (cli *CommandLine) printChain() {
 		fmt.Printf("Hash: %x\n", block.Hash)
 		pow := blockchain.NewProof(block)
 		fmt.Printf("pow %s\n", strconv.FormatBool(pow.Validate()))
+		for _, tx := range block.Transactions {
+			fmt.Println(tx)
+		}
 		fmt.Println()
 		if len(block.PrevHash) == 0 {
 			break
@@ -49,16 +52,24 @@ func (cli *CommandLine) printChain() {
 }
 
 func (cli *CommandLine) createBlockChain(address string) {
+	if !wallet.ValidateAddress(address) {
+		log.Panic("Address is not valid")
+	}
 	chain := blockchain.InitBlockChain(address)
 	chain.Database.Close()
 	fmt.Println(" Finished")
 }
 
 func (cli *CommandLine) getBalance(address string) {
+	if !wallet.ValidateAddress(address) {
+		log.Panic("Address is not valid")
+	}
 	chain := blockchain.ContinueBlockChain(address)
 	defer chain.Database.Close()
 	balance := 0
-	UTXOs := chain.FindUTXO(address)
+	pubKeyHash := wallet.Base58Decode([]byte(address))
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
+	UTXOs := chain.FindUTXO(pubKeyHash)
 	for _, out := range UTXOs {
 		balance += out.Value
 	}
@@ -81,6 +92,9 @@ func (cli *CommandLine) createWallet() {
 }
 
 func (cli *CommandLine) send(from, to string, amount int) {
+	if !wallet.ValidateAddress(from) || !wallet.ValidateAddress(to) {
+		log.Panic("Address is not valid")
+	}
 	chain := blockchain.ContinueBlockChain(from)
 	defer chain.Database.Close()
 	tx := blockchain.NewTransaction(from, to, amount, chain)

@@ -9,7 +9,7 @@ func Base58Encode(input []byte) []byte {
 	return []byte(encode)
 }
 
-func base58Decode(input []byte) []byte {
+func Base58Decode(input []byte) []byte {
 	decode, err := base58.Decode(string(input[:]))
 	Handle(err)
 	return decode
