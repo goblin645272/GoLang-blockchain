@@ -28,7 +28,6 @@ func (cli *CommandLine) reindexUTXO() {
 	chain := blockchain.ContinueBlockChain("")
 	defer chain.Database.Close()
 	UTXOSet := blockchain.UTXOSet{chain}
-
 	count := UTXOSet.CountTransactions()
 	fmt.Printf("Done! There are %d transactions in UTXO set.\n", count)
 }
@@ -123,6 +122,7 @@ func (cli *CommandLine) Run() {
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
 	createWalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
 	listAddressesCmd := flag.NewFlagSet("listaddresses", flag.ExitOnError)
+	reindexUTXOCmd := flag.NewFlagSet("reindexutxo", flag.ExitOnError)
 
 	getBalanceAddress := getBalanceCmd.String("address", "", "Balance address")
 	createBlockchainAddress := createBlockchainCmd.String("address", "", "Address blockchain")
@@ -158,6 +158,11 @@ func (cli *CommandLine) Run() {
 		}
 	case "listaddresses":
 		err := listAddressesCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "reindexutxo":
+		err := reindexUTXOCmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
 		}
@@ -202,5 +207,8 @@ func (cli *CommandLine) Run() {
 	}
 	if listAddressesCmd.Parsed() {
 		cli.listAddresses()
+	}
+	if reindexUTXOCmd.Parsed() {
+		cli.reindexUTXO()
 	}
 }
